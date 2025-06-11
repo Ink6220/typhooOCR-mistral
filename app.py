@@ -173,7 +173,7 @@ def cleanup_temp_file(file_path):
     except Exception as e:
         logger.warning(f"Failed to cleanup temp file {file_path}: {e}")
 
-def convert_to_image(file_path, target_size=896):
+def convert_to_image(file_path, target_size=896, page_num=0):
     """将输入文件转换为图像格式，长边调整到指定尺寸"""
     if file_path is None:
         return None
@@ -183,12 +183,15 @@ def convert_to_image(file_path, target_size=896):
         file_ext = os.path.splitext(file_path)[1].lower()
         
         if file_ext == '.pdf':
-            # PDF文件：转换为图像
-            logger.info(f"Converting PDF to image: {file_path}")
+            # PDF文件：转换指定页面为图像
+            logger.info(f"Converting PDF page {page_num} to image: {file_path}")
             doc = pymupdf.open(file_path)
             
-            # 只处理第一页
-            page = doc[0]
+            # 检查页面数量
+            if page_num >= len(doc):
+                page_num = 0  # 如果页面超出范围，使用第一页
+            
+            page = doc[page_num]
             
             # 计算缩放比例，使长边为target_size
             rect = page.rect
@@ -209,7 +212,7 @@ def convert_to_image(file_path, target_size=896):
                 return tmp_file.name
                 
         else:
-            # 图像文件：调整尺寸
+            # 图像文件：调整尺寸（忽略page_num参数）
             logger.info(f"Resizing image: {file_path}")
             pil_image = Image.open(file_path).convert("RGB")
             
@@ -236,15 +239,72 @@ def convert_to_image(file_path, target_size=896):
         logger.error(f"Error converting file to image: {e}")
         return file_path  # 如果转换失败，返回原文件
 
+def get_pdf_page_count(file_path):
+    """获取PDF文件的页数"""
+    try:
+        if file_path and file_path.lower().endswith('.pdf'):
+            doc = pymupdf.open(file_path)
+            page_count = len(doc)
+            doc.close()
+            return page_count
+        else:
+            return 1  # 非PDF文件视为单页
+    except Exception as e:
+        logger.error(f"Error getting PDF page count: {e}")
+        return 1
+
+def convert_all_pdf_pages_to_images(file_path, target_size=896):
+    """将PDF的所有页面转换为图像列表"""
+    if file_path is None:
+        return []
+    
+    try:
+        file_ext = os.path.splitext(file_path)[1].lower()
+        
+        if file_ext == '.pdf':
+            doc = pymupdf.open(file_path)
+            image_paths = []
+            
+            for page_num in range(len(doc)):
+                page = doc[page_num]
+                
+                # 计算缩放比例
+                rect = page.rect
+                scale = target_size / max(rect.width, rect.height)
+                
+                # 渲染页面为图像
+                mat = pymupdf.Matrix(scale, scale)
+                pix = page.get_pixmap(matrix=mat)
+                
+                # 转换为PIL图像
+                img_data = pix.tobytes("png")
+                pil_image = Image.open(io.BytesIO(img_data))
+                
+                # 保存为临时文件
+                with tempfile.NamedTemporaryFile(suffix=f"_page_{page_num}.png", delete=False) as tmp_file:
+                    pil_image.save(tmp_file.name, "PNG")
+                    image_paths.append(tmp_file.name)
+            
+            doc.close()
+            return image_paths
+        else:
+            # 非PDF文件，返回调整后的单个图像
+            converted_path = convert_to_image(file_path, target_size)
+            return [converted_path] if converted_path else []
+            
+    except Exception as e:
+        logger.error(f"Error converting PDF pages to images: {e}")
+        return []
+
 def to_pdf(file_path):
     """为了兼容性保留的函数，现在调用convert_to_image"""
     return convert_to_image(file_path)
 
 @spaces.GPU(duration=120)
 def process_document(file_path):
-    """处理文档的主要函数 - 集成完整的推理逻辑"""
+    """处理文档的主要函数 - 支持多页PDF处理"""
     if file_path is None:
-        return "", "", {}, {}
+        return "", "", []
     
     start_time = time.time()
     original_file_path = file_path
@@ -253,57 +313,85 @@ def process_document(file_path):
     if model is None:
         initialize_model()
     
-    # 转换为图像（长边896像素）
-    converted_file_path = convert_to_image(file_path, target_size=896)
-    temp_file_created = converted_file_path != original_file_path
-    
     try:
-        logger.info(f"Processing document: {file_path}")
-        logger.info(f"Converted to image: {converted_file_path}")
+        # 获取页数
+        page_count = get_pdf_page_count(file_path)
+        logger.info(f"Document has {page_count} page(s)")
         
-        # 处理图像
-        recognition_results = process_page(converted_file_path)
+        # 将所有页面转换为图像
+        image_paths = convert_all_pdf_pages_to_images(file_path)
+        if not image_paths:
+            raise Exception("Failed to convert document to images")
         
-        # 生成Markdown内容
-        md_content = generate_markdown(recognition_results)
+        # 记录需要清理的临时文件
+        temp_files_created = []
+        file_ext = os.path.splitext(file_path)[1].lower()
+        if file_ext == '.pdf':
+            temp_files_created.extend(image_paths)
+        elif len(image_paths) == 1 and image_paths[0] != original_file_path:
+            temp_files_created.append(image_paths[0])
+        
+        all_results = []
+        md_contents = []
+        
+        # 逐页处理
+        for page_idx, image_path in enumerate(image_paths):
+            logger.info(f"Processing page {page_idx + 1}/{len(image_paths)}")
+            
+            # 处理当前页面
+            recognition_results = process_page(image_path)
+            
+            # 生成当前页的markdown内容
+            page_md_content = generate_markdown(recognition_results)
+            
+            md_contents.append(page_md_content)
+            
+            # 保存当前页的处理数据
+            page_data = {
+                "page": page_idx + 1,
+                "elements": recognition_results,
+                "total_elements": len(recognition_results)
+            }
+            all_results.append(page_data)
         
         # 计算处理时间
         processing_time = time.time() - start_time
         
-        debug_info = {
-            "original_file": original_file_path,
-            "converted_file": converted_file_path,
-            "temp_file_created": temp_file_created,
-            "file_type": "PDF" if original_file_path.lower().endswith('.pdf') else "Image",
-            "status": "success",
+        # 合并所有页面的markdown内容
+        if len(md_contents) > 1:
+            final_md_content = "\n\n---\n\n".join(md_contents)
+        else:
+            final_md_content = md_contents[0] if md_contents else ""
+        
+        # 在结果数组最后添加总体信息
+        summary_data = {
+            "summary": True,
+            "total_pages": len(image_paths),
+            "total_elements": sum(len(page["elements"]) for page in all_results),
             "processing_time": f"{processing_time:.2f}s",
-            "total_elements": len(recognition_results)
+            "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
         }
+        all_results.append(summary_data)
         
-        processing_data = {
-            "pages": [{"elements": recognition_results}],
-            "total_elements": len(recognition_results),
-            "processing_time": f"{processing_time:.2f}s"
-        }
-        
-        logger.info(f"Document processed successfully in {processing_time:.2f}s")
-        return md_content, md_content, processing_data, debug_info
+        logger.info(f"Document processed successfully in {processing_time:.2f}s - {len(image_paths)} page(s)")
+        return final_md_content, final_md_content, all_results
     
     except Exception as e:
         logger.error(f"Error processing document: {str(e)}")
-        error_info = {
+        error_data = [{
+            "error": True,
+            "message": str(e),
             "original_file": original_file_path,
-            "converted_file": converted_file_path,
-            "temp_file_created": temp_file_created,
-            "status": "error",
-            "error": str(e)
-        }
-        return f"# 处理错误\n\n处理文档时发生错误: {str(e)}", "", {}, error_info
+            "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
+        }]
+        return f"# 处理错误\n\n处理文档时发生错误: {str(e)}", "", error_data
     
     finally:
         # 清理临时文件
-        if temp_file_created:
-            cleanup_temp_file(converted_file_path)
+        if 'temp_files_created' in locals():
+            for temp_file in temp_files_created:
+                if temp_file and os.path.exists(temp_file):
+                    cleanup_temp_file(temp_file)
 
 def process_page(image_path):
     """处理单页文档"""
@@ -464,7 +552,6 @@ with gr.Blocks(css=custom_css, title="Dolphin Document Parser") as demo:
                 with gr.Column(scale=1, elem_classes="preview-panel"):
                     gr.HTML("文件预览/Preview")
                     pdf_show = PDF(label="", interactive=False, visible=True, height=600)
-                    debug_output = gr.JSON(label="Debug Info", height=100)
 
                 # 输出面板
                 with gr.Column(scale=1, elem_classes="output-panel"):
@@ -479,24 +566,60 @@ with gr.Blocks(css=custom_css, title="Dolphin Document Parser") as demo:
                             )
                         with gr.Tab("Markdown [Content]"):
                             md_content = gr.TextArea(lines=30, show_copy_button=True)
-                        with gr.Tab("Processing Data"):
+                        with gr.Tab("Json [Content]"):
                             json_output = gr.JSON(label="", height=700)
 
     # 事件处理 - 预览文件
     def preview_file(file_path):
-        """预览上传的文件，转换为PDF格式用于预览组件"""
+        """预览上传的文件，对图像先调整尺寸再转换为PDF格式"""
         if file_path is None:
             return None
         
-        with pymupdf.open(file_path) as f:
-            if f.is_pdf:
+        try:
+            file_ext = os.path.splitext(file_path)[1].lower()
+            
+            if file_ext == '.pdf':
+                # PDF文件直接返回
                 return file_path
             else:
-                pdf_bytes = f.convert_to_pdf()
-                # 使用临时文件保存PDF
+                # 图像文件：先调整尺寸再转换为PDF
+                logger.info(f"Resizing image for preview: {file_path}")
+                
+                # 使用PIL打开图像并调整尺寸
+                pil_image = Image.open(file_path).convert("RGB")
+                w, h = pil_image.size
+                
+                # 如果图像很大，调整到合适预览尺寸（长边最大896像素）
+                max_preview_size = 896
+                if max(w, h) > max_preview_size:
+                    if w > h:
+                        new_w, new_h = max_preview_size, int(h * max_preview_size / w)
+                    else:
+                        new_w, new_h = int(w * max_preview_size / h), max_preview_size
+                    
+                    pil_image = pil_image.resize((new_w, new_h), Image.Resampling.LANCZOS)
+                    logger.info(f"Resized from {w}x{h} to {new_w}x{new_h} for preview")
+                
+                # 将调整后的图像转换为PDF
                 with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp_file:
-                    tmp_file.write(pdf_bytes)
+                    pil_image.save(tmp_file.name, "PDF")
                     return tmp_file.name
+                    
+        except Exception as e:
+            logger.error(f"Error creating preview: {e}")
+            # 出错时使用原来的方法
+            try:
+                with pymupdf.open(file_path) as f:
+                    if f.is_pdf:
+                        return file_path
+                    else:
+                        pdf_bytes = f.convert_to_pdf()
+                        with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp_file:
+                            tmp_file.write(pdf_bytes)
+                            return tmp_file.name
+            except Exception as e2:
+                logger.error(f"Fallback preview method also failed: {e2}")
+                return None
     
     file.change(fn=preview_file, inputs=file, outputs=pdf_show)
     
@@ -504,27 +627,27 @@ with gr.Blocks(css=custom_css, title="Dolphin Document Parser") as demo:
     def process_with_status(file_path):
         """处理文档并更新状态"""
         if file_path is None:
-            return "", "", {}, {}, "Please select a file first"
+            return "", "", []
         
         # 执行文档处理
-        md_render_result, md_content_result, json_result, debug_result = process_document(file_path)
+        md_render_result, md_content_result, json_result = process_document(file_path)
         
-        return md_render_result, md_content_result, json_result, debug_result
+        return md_render_result, md_content_result, json_result
     
     submit_btn.click(
         fn=process_with_status,
         inputs=[file],
-        outputs=[md_render, md_content, json_output, debug_output],
+        outputs=[md_render, md_content, json_output],
     )
     
     # 清空所有内容
     def reset_all():
-        return None, None, "", "", {}, {}
+        return None, None, "", "", []
     
     clear_btn.click(
         fn=reset_all,
         inputs=[],
-        outputs=[file, pdf_show, md_render, md_content, json_output, debug_output]
+        outputs=[file, pdf_show, md_render, md_content, json_output]
     )
 
 # 启动应用

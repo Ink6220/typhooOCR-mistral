@@ -484,22 +484,19 @@ with gr.Blocks(css=custom_css, title="Dolphin Document Parser") as demo:
 
     # 事件处理 - 预览文件
     def preview_file(file_path):
-        """预览上传的文件"""
+        """预览上传的文件，转换为PDF格式用于预览组件"""
         if file_path is None:
             return None
         
-        # 对于PDF文件，转换为图像用于预览
-        if file_path.lower().endswith('.pdf'):
-            try:
-                # 转换PDF第一页为图像
-                converted_path = convert_to_image(file_path, target_size=896)
-                return converted_path
-            except Exception as e:
-                logger.error(f"Error converting PDF for preview: {e}")
+        with pymupdf.open(file_path) as f:
+            if f.is_pdf:
                 return file_path
-        else:
-            # 图像文件直接返回
-            return file_path
+            else:
+                pdf_bytes = f.convert_to_pdf()
+                # 使用临时文件保存PDF
+                with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp_file:
+                    tmp_file.write(pdf_bytes)
+                    return tmp_file.name
     
     file.change(fn=preview_file, inputs=file, outputs=pdf_show)
     

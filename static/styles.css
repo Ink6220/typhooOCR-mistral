@@ -1,0 +1,306 @@
+:root {
+  /* 主色调 */
+  --primary-color: #dceaf6;
+  --primary-light: #f8f9fa;
+  --primary-dark: #9ec9e3;
+
+  /* 辅助色调 */
+  --accent-color: #bfe2f8;
+  --accent-light: #dceaf6;
+
+  /* 背景色 */
+  --bg-color: #e8eff5;
+  --card-bg: #ffffff;
+
+  /* 文本色 */
+  --dark-text: #2b2d42;
+  --light-text: #f8f9fa;
+  --muted-text: rgba(43, 45, 66, 0.7);
+
+  /* 边框和阴影 */
+  --border-color: rgba(168, 168, 168, 0.432);
+  --card-shadow: 0 4px 20px rgba(104, 104, 104, 0.1);
+
+  /* 交互状态 */
+  --hover-bg: rgba(255, 255, 255, 0.5);
+  --active-color: #bfe2f8;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--bg-color);
+}
+
+/* 卡片样式 */
+.gradio-container {
+    max-width: 95% !important;
+    width: 95% !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+}
+
+/* 面板样式 */
+.panel {
+    border-radius: 12px !important;
+    border: 1px solid var(--border-color) !important;
+    box-shadow: var(--card-shadow) !important;
+    background-color: var(--card-bg) !important;
+    padding: 1.5rem !important;
+}
+
+/* 按钮样式 */
+button.primary {
+    border-radius: 8px !important;
+}
+
+button {
+    border-radius: 8px !important;
+    border: 1px solid var(--border-color) !important;
+    background-color: var(--hover-bg) !important;
+    color: var(--dark-text) !important;
+    transition: all 0.3s ease !important;
+}
+
+button:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1) !important;
+    background-color: var(--hover-bg) !important;
+}
+
+/* 文件上传区域 */
+.file-preview {
+    border-radius: 8px !important;
+    border: 1px dashed var(--border-color) !important;
+}
+
+.file-preview:hover {
+    border-color: var(--primary-dark) !important;
+}
+
+/* 确保所有链接按钮样式正确 */
+.header-buttons a,
+.header-buttons a:hover,
+.header-buttons a:visited,
+.header-buttons a:active {
+    text-decoration: none !important;
+    color: var(--dark-text) !important;
+}
+
+/* 覆盖任何可能的内联样式 */
+.header-buttons a[style] {
+    text-decoration: none !important;
+    color: var(--dark-text) !important;
+}
+
+/* 确保链接内的所有元素都没有下划线 */
+.header-buttons a *,
+.header-buttons a:hover * {
+    text-decoration: none !important;
+}
+
+/* 隐藏页面底部信息 */
+footer, .footer, .footer-links, .gradio-footer {
+    display: none !important;
+}
+
+/* 隐藏底部工具栏 */
+.gradio-container > div:last-child {
+    display: none !important;
+}
+
+/* 隐藏底部API按钮和设置按钮 */
+.fixed-bottom {
+    display: none !important;
+}
+
+/* 隐藏Gradio品牌信息 */
+.gr-prose p:last-child {
+    display: none !important;
+}
+
+/* 隐藏底部的所有可能元素 */
+[class*="footer"], [id*="footer"], [class*="bottom-bar"], [id*="bottom-bar"] {
+    display: none !important;
+}
+
+/* 侧边栏样式 */
+.sidebar {
+    background-color: var(--card-bg);
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    box-shadow: var(--card-shadow);
+    padding: 1rem;
+    margin-right: 1rem;
+}
+
+/* 上传按钮样式 */
+.upload-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px dashed var(--border-color);
+    padding: 1rem;
+    margin-bottom: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.upload-button:hover {
+    border-color: var(--primary-dark);
+    background-color: rgba(158, 201, 227, 0.1);
+}
+
+.upload-button i {
+    font-size: 1.5rem;
+    color: var(--primary-dark);
+    margin-right: 0.5rem;
+}
+
+/* 示例文件列表样式 */
+.example-list {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
+.example-item {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem;
+    border-radius: 8px;
+    margin-bottom: 0.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.example-item:hover {
+    background-color: rgba(158, 201, 227, 0.1);
+}
+
+.example-item i {
+    font-size: 1.2rem;
+    color: var(--primary-dark);
+    margin-right: 0.5rem;
+}
+
+.example-item-name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* 取消和确认按钮样式 */
+.action-buttons {
+    display: flex;
+    justify-content: flex-end;
+}
+
+/* 取消按钮样式 */
+button[value="清空/Clear"] {
+    color: #e74c3c !important;
+}
+
+/* 隐藏原始文件上传组件 */
+.file-upload {
+    display: none !important;
+}
+
+/* 主体内容样式 */
+.main-content {
+    display: flex;
+    flex: 1;
+}
+
+/* 预览框样式 */
+.preview-panel {
+    flex: 1;
+    background-color: var(--card-bg);
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    box-shadow: var(--card-shadow);
+    padding: 1rem;
+    margin-right: 1rem;
+}
+
+/* 输出框样式 */
+.output-panel {
+    flex: 1;
+    background-color: var(--card-bg);
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    box-shadow: var(--card-shadow);
+    padding: 1rem;
+}
+
+/* 响应式布局 */
+@media (max-width: 768px) {
+    .main-content {
+        flex-direction: column;
+    }
+
+    .sidebar, .preview-panel, .output-panel {
+        margin-right: 0;
+        margin-bottom: 1rem;
+        width: 100%;
+    }
+}
+
+/* 美化文件上传组件 */
+#file-upload {
+    margin-bottom: 1.5rem;
+}
+
+#file-upload .file-preview {
+    border: 2px dashed var(--border-color);
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+    text-align: center;
+}
+
+#file-upload .file-preview:hover {
+    border-color: var(--primary-dark);
+    background-color: rgba(158, 201, 227, 0.1);
+}
+
+/* 隐藏原始标签 */
+#file-upload .label-wrap {
+    display: none;
+}
+
+/* 美化示例文件列表 */
+#example-files .gr-samples-table {
+    border: none;
+    background: transparent;
+}
+
+#example-files .gr-samples-table td {
+    border: none;
+    padding: 0.5rem;
+    transition: all 0.3s ease;
+    border-radius: 8px;
+}
+
+#example-files .gr-samples-table tr:hover td {
+    background-color: rgba(158, 201, 227, 0.1);
+}
+
+#example-files .gr-samples-table td a {
+    display: flex;
+    align-items: center;
+    color: var(--dark-text);
+    text-decoration: none;
+}
+
+#example-files .gr-samples-table td a::before {
+    content: "\f1c1";
+    font-family: "Font Awesome 6 Free";
+    font-weight: 900;
+    margin-right: 0.5rem;
+    color: var(--primary-dark);
+    font-size: 1.2rem;
+}
+
+/* 隐藏分页控件 */
+#example-files .gr-samples-pagination {
+    display: none;
+} 

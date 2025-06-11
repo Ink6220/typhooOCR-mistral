@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en" style="color-scheme: light;">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      /* 主色调 */
+      --primary-color: #dceaf6;
+      --primary-light: #f8f9fa;
+      --primary-dark: #9ec9e3;
+
+      /* 辅助色调 */
+      --accent-color: #bfe2f8;
+      --accent-light: #dceaf6;
+
+      /* 背景色 */
+      --bg-color: #e8eff5;
+      --card-bg: #ffffff;
+
+      /* 文本色 */
+      --dark-text: #2b2d42;
+      --light-text: #f8f9fa;
+      --muted-text: rgba(43, 45, 66, 0.7);
+
+      /* 边框和阴影 */
+      --border-color: rgba(168, 168, 168, 0.432);
+      --card-shadow: 0 4px 20px rgba(104, 104, 104, 0.1);
+
+      /* 交互状态 */
+      --hover-bg: rgba(255, 255, 255, 0.5);
+      --active-color: #bfe2f8;
+    }
+
+    .header-container {
+      display: flex;
+      flex-direction: row;
+      justify-content: space-between;
+      align-items: flex-start;
+      background: linear-gradient(135deg,
+        #e4deff 0%,
+        #d8f7ff 100%
+      );
+      padding: 1.8rem;
+      border-radius: 12px;
+      margin-bottom: 1.5rem;
+      box-shadow: var(--card-shadow);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .header-container::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(135deg,
+        rgba(255, 255, 255, 0.2) 0%,
+        rgba(255, 255, 255, 0) 100%
+      );
+      pointer-events: none;
+    }
+
+    .header-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      max-width: 100%;
+      width: 100%;
+    }
+
+    .header-buttons {
+      display: none;
+    }
+
+    .logo-title-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      max-width: 100%;
+      text-align: center;
+    }
+
+    .logo {
+      width: 350px;
+      height: auto;
+      margin-bottom: 1rem;
+      margin-right: 0;
+    }
+
+    .header-title {
+      font-size: 2.2rem;
+      font-weight: 700;
+      color: var(--dark-text);
+      margin: 0;
+      font-family: 'Poppins', 'Segoe UI', sans-serif;
+      line-height: 1.2;
+      text-align: center;
+      max-width: 100%;
+    }
+
+    .header-subtitle {
+      font-size: 1.1rem;
+      color: var(--muted-text);
+      margin: 0 0 1.5rem 0;
+      line-height: 1.6;
+      max-width: 100%;
+      text-align: center;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .link-button {
+      display: flex;
+      align-items: center;
+      padding: 0.7rem 1.2rem;
+      background-color: var(--hover-bg);
+      border-radius: 8px;
+      color: var(--dark-text) !important;
+      text-decoration: none !important;
+      font-weight: 700;
+      font-size: 1.1rem;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(5px);
+      border: 1px solid var(--border-color);
+      width: 100%;
+      margin-bottom: 0.5rem;
+    }
+
+    .link-button:hover {
+      background-color: var(--hover-bg);
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+      text-decoration: none !important;
+      color: var(--dark-text) !important;
+    }
+
+    .link-button i {
+      margin-right: 0.8rem;
+      font-size: 1.2rem;
+      color: var(--primary-dark);
+      min-width: 20px;
+      text-align: center;
+    }
+
+    .link-button * {
+      text-decoration: none !important;
+      color: inherit !important;
+    }
+
+    .feature-grid {
+      display: flex;
+      flex-direction: row;
+      align-items: flex-start;
+      justify-content: center;
+      margin-top: 1.5rem;
+      width: 100%;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .feature-card {
+      flex: 1;
+      padding: 1rem 1rem;
+      background-color: transparent;
+      border: none;
+      box-shadow: none;
+      transition: none;
+      text-align: center;
+      position: relative;
+    }
+
+    .feature-card:hover {
+      transform: none;
+      box-shadow: none;
+    }
+
+    .feature-separator {
+      width: 1px;
+      align-self: stretch;
+      background-color: var(--border-color);
+      margin: 0 1rem;
+    }
+
+    .feature-icon {
+      font-size: 2rem;
+      color: var(--primary-dark);
+      margin-bottom: 1rem;
+    }
+
+    .feature-title {
+      font-weight: 600;
+      color: var(--dark-text);
+      margin-bottom: 0.8rem;
+      font-size: 1.2rem;
+    }
+
+    .feature-desc {
+      font-size: 0.85rem;
+      color: var(--muted-text);
+      line-height: 1.5;
+    }
+
+    /* 新的导航按钮样式 */
+    .nav-buttons {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: center;
+      margin-top: 1rem;
+      margin-bottom: 2rem;
+      background-color: rgba(255, 255, 255, 0.7);
+      border-radius: 12px;
+      border: 1px solid var(--border-color);
+      padding: 0.5rem 1rem;
+      max-width: none;
+      width: auto;
+      align-self: center;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .nav-link {
+      display: flex;
+      align-items: center;
+      padding: 0.5rem 1rem;
+      color: var(--dark-text) !important;
+      text-decoration: none !important;
+      font-weight: 600;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+    }
+
+    .nav-link:hover {
+      transform: translateY(-3px);
+      color: var(--primary-dark) !important;
+      background-color: rgba(255, 255, 255, 0.8);
+    }
+
+    .nav-link i {
+      margin-right: 0.5rem;
+      font-size: 1.1rem;
+      color: var(--primary-dark);
+    }
+
+    .nav-separator {
+      height: 20px;
+      width: 1px;
+      background-color: var(--border-color);
+      margin: 0 0.5rem;
+    }
+
+    @media (max-width: 960px) {
+      .header-container {
+        flex-direction: column;
+        padding: 1.5rem;
+      }
+
+      .header-content {
+        max-width: 100%;
+        margin-bottom: 2rem;
+      }
+
+      .header-buttons {
+        width: 100%;
+        margin-left: 0;
+      }
+
+      .logo-title-container {
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .logo {
+        width: 250px;
+        margin-bottom: 1rem;
+        margin-right: 0;
+      }
+
+      .header-title {
+        font-size: 1.8rem;
+      }
+
+      .feature-grid {
+        flex-direction: column;
+      }
+
+      .feature-card {
+        width: 100%;
+        padding: 1rem 0;
+      }
+
+      .feature-separator {
+        width: 100%;
+        height: 1px;
+        margin: 0.5rem 0;
+      }
+
+      .nav-buttons {
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+
+      .nav-link {
+        padding: 0.5rem;
+        font-size: 0.9rem;
+      }
+
+      .nav-separator {
+        display: none;
+      }
+
+      .feature-desc {
+        font-size: 0.9rem;
+      }
+    }
+
+    /* 添加禁用夜间模式的样式 */
+    @media (prefers-color-scheme: dark) {
+      /* 强制使用明亮模式颜色 */
+      .header-container,
+      .header-content,
+      .logo-title-container,
+      .header-title,
+      .header-subtitle,
+      .nav-buttons,
+      .nav-link,
+      .feature-grid,
+      .feature-card,
+      .feature-title,
+      .feature-desc,
+      body,
+      * {
+        color-scheme: light !important; /* 强制使用明亮模式配色方案 */
+        color: var(--dark-text) !important; /* 强制使用黑色文本 */
+        background-color: initial; /* 保持原有背景色 */
+      }
+    }
+    
+    /* 添加全局样式覆盖，确保所有文本都使用我们指定的颜色 */
+    body, p, h1, h2, h3, h4, h5, h6, span, div, a {
+      color: var(--dark-text) !important;
+    }
+    
+    .feature-desc {
+      color: var(--muted-text) !important;
+    }
+    
+    /* 确保图标颜色也不受夜间模式影响 */
+    .feature-icon i, .nav-link i {
+      color: var(--primary-dark) !important;
+    }
+    
+    /* 导航链接悬停效果 */
+    .nav-link:hover {
+      color: var(--primary-dark) !important;
+    }
+  </style>
+</head>
+<body>
+  <div class="header-container">
+    <div class="header-content">
+      <div class="logo-title-container">
+        <img src="https://raw.githubusercontent.com/bytedance/Dolphin/master/assets/dolphin.png" alt="Dolphin Logo" class="logo">
+        <h1 class="header-title">Document Image Parsing via Heterogeneous Anchor Prompting</h1>
+      </div>
+
+      <p class="header-subtitle">
+        A novel multimodal document image parsing model, following an analyze-then-parse paradigm for parallel decoding
+        <!-- <br>
+        Stage 1: Comprehensive page-level layout analysis by generating element sequence in natural reading order.
+        <br>
+        Stage 2: Efficient parallel parsing of document elements using heterogeneous anchors and task-specific prompts. -->
+      </p>
+
+      <!-- 新的导航按钮 -->
+      <div class="nav-buttons">
+        <!-- <a href="https://mineru.org.cn/home?source=huggingface" class="nav-link">
+          <i class="fas fa-home"></i> 主页/Homepage
+        </a> -->
+        <!-- <div class="nav-separator"></div> -->
+        <a href="https://arxiv.org/abs/2505.14059" class="nav-link">
+          <i class="fas fa-file-alt"></i> 论文/Paper
+        </a>
+        <div class="nav-separator"></div>
+        <a href="https://huggingface.co/ByteDance/Dolphin" class="nav-link">
+          <i class="fas fa-cube"></i> 模型/Model
+        </a>
+        <div class="nav-separator"></div>
+        <a href="https://github.com/bytedance/Dolphin" class="nav-link">
+          <i class="fas fa-code"></i> 代码/Code
+        </a>
+        <div class="nav-separator"></div>
+        <a href="https://opensource.org/licenses/MIT" class="nav-link">
+          <i class="fas fa-balance-scale"></i> 许可证/License
+        </a>
+      </div>
+
+      <div class="feature-grid">
+        <div class="feature-card">
+          <div class="feature-icon"><i class="fas fa-file-import"></i></div>
+          <div class="feature-title">支持格式/Support Format</div>
+          <div class="feature-desc">支持多页PDF、单页图像<br>Multi-page PDF, single document image (JPEG/PNG)</div>
+        </div>
+
+        <div class="feature-separator"></div>
+
+        <div class="feature-card">
+          <div class="feature-icon"><i class="fas fa-feather-alt"></i></div>
+          <div class="feature-title">轻量级模型/Lightweight Model</div>
+          <div class="feature-desc">Dolphin模型参数量322M，高效易部署<br>Lightweight (322M) and efficient, easy to deploy</div>
+        </div>
+
+        <div class="feature-separator"></div>
+
+        <div class="feature-card">
+          <div class="feature-icon"><i class="fas fa-tasks"></i></div>
+          <div class="feature-title">并行解析/Parallel Parsing</div>
+          <div class="feature-desc">Dolphin并行解析多个文本块<br>Parsing several text blocks in a batch for speed up</div>
+        </div>
+
+        <div class="feature-separator"></div>
+
+        <div class="feature-card">
+          <div class="feature-icon"><i class="fas fa-superscript"></i></div>
+          <div class="feature-title">公式和表格/Formula and Table</div>
+          <div class="feature-desc">支持公式(LaTeX格式)、表格(HTML格式)输出<br>Support formulas (LaTeX format) and tables (HTML format)</div>
+        </div>
+      </div>
+      
+      <!-- 添加免责声明 -->
+      <p style="
+        font-size: 0.8rem;
+        color: var(--muted-text) !important;
+        margin-top: 1.5rem;
+        text-align: center;
+      ">内容由 AI 生成，请仔细甄别</p>
+    </div>
+  </div>
+</body>
+</html>

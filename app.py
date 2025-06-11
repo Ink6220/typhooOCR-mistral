@@ -1,3 +1,4 @@
+import io
 import os
 import tempfile
 import time
@@ -172,20 +173,72 @@ def cleanup_temp_file(file_path):
     except Exception as e:
         logger.warning(f"Failed to cleanup temp file {file_path}: {e}")
 
-def to_pdf(file_path):
-    """将输入文件转换为PDF格式"""
+def convert_to_image(file_path, target_size=896):
+    """将输入文件转换为图像格式，长边调整到指定尺寸"""
     if file_path is None:
         return None
+    
+    try:
+        # 检查文件扩展名
+        file_ext = os.path.splitext(file_path)[1].lower()
         
-    with pymupdf.open(file_path) as f:
-        if f.is_pdf:
-            return file_path
-        else:
-            pdf_bytes = f.convert_to_pdf()
-            # 使用临时文件而不是保存到磁盘
-            with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp_file:
-                tmp_file.write(pdf_bytes)
+        if file_ext == '.pdf':
+            # PDF文件：转换为图像
+            logger.info(f"Converting PDF to image: {file_path}")
+            doc = pymupdf.open(file_path)
+            
+            # 只处理第一页
+            page = doc[0]
+            
+            # 计算缩放比例，使长边为target_size
+            rect = page.rect
+            scale = target_size / max(rect.width, rect.height)
+            
+            # 渲染页面为图像
+            mat = pymupdf.Matrix(scale, scale)
+            pix = page.get_pixmap(matrix=mat)
+            
+            # 转换为PIL图像
+            img_data = pix.tobytes("png")
+            pil_image = Image.open(io.BytesIO(img_data))
+            
+            # 保存为临时文件
+            with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmp_file:
+                pil_image.save(tmp_file.name, "PNG")
+                doc.close()
                 return tmp_file.name
+                
+        else:
+            # 图像文件：调整尺寸
+            logger.info(f"Resizing image: {file_path}")
+            pil_image = Image.open(file_path).convert("RGB")
+            
+            # 计算新尺寸，保持长宽比
+            w, h = pil_image.size
+            if max(w, h) > target_size:
+                if w > h:
+                    new_w, new_h = target_size, int(h * target_size / w)
+                else:
+                    new_w, new_h = int(w * target_size / h), target_size
+                
+                pil_image = pil_image.resize((new_w, new_h), Image.Resampling.LANCZOS)
+            
+            # 如果已是图像且尺寸合适，直接返回原文件
+            if max(w, h) <= target_size:
+                return file_path
+            
+            # 保存调整后的图像
+            with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmp_file:
+                pil_image.save(tmp_file.name, "PNG")
+                return tmp_file.name
+                
+    except Exception as e:
+        logger.error(f"Error converting file to image: {e}")
+        return file_path  # 如果转换失败，返回原文件
+
+def to_pdf(file_path):
+    """为了兼容性保留的函数，现在调用convert_to_image"""
+    return convert_to_image(file_path)
 
 @spaces.GPU(duration=120)
 def process_document(file_path):
@@ -200,14 +253,15 @@ def process_document(file_path):
     if model is None:
         initialize_model()
     
-    # 转换为PDF（如果需要）
-    converted_file_path = to_pdf(file_path)
+    # 转换为图像（长边896像素）
+    converted_file_path = convert_to_image(file_path, target_size=896)
     temp_file_created = converted_file_path != original_file_path
     
     try:
         logger.info(f"Processing document: {file_path}")
+        logger.info(f"Converted to image: {converted_file_path}")
         
-        # 处理页面
+        # 处理图像
         recognition_results = process_page(converted_file_path)
         
         # 生成Markdown内容
@@ -220,6 +274,7 @@ def process_document(file_path):
             "original_file": original_file_path,
             "converted_file": converted_file_path,
             "temp_file_created": temp_file_created,
+            "file_type": "PDF" if original_file_path.lower().endswith('.pdf') else "Image",
             "status": "success",
             "processing_time": f"{processing_time:.2f}s",
             "total_elements": len(recognition_results)
@@ -381,19 +436,11 @@ with gr.Blocks(css=custom_css, title="Dolphin Document Parser") as demo:
                 elem_id="file-upload"
             )
 
-            gr.HTML("选择文件后，点击处理按钮开始解析<br>After selecting the file, click the Process button to start parsing")
+            gr.HTML("支持PDF和图像文件，PDF将转换为图像处理（长边896px）<br>Support PDF and image files, PDF will be converted to images (896px max)")
 
             with gr.Row(elem_classes="action-buttons"):
                 submit_btn = gr.Button("处理文档/Process Document", variant="primary")
                 clear_btn = gr.ClearButton(value="清空/Clear")
-            
-            # 处理状态显示
-            status_display = gr.Textbox(
-                label="Processing Status", 
-                value="Ready to process documents", 
-                interactive=False,
-                max_lines=2
-            )
 
             # 示例文件
             example_root = os.path.join(os.path.dirname(__file__), "examples")
@@ -437,8 +484,26 @@ with gr.Blocks(css=custom_css, title="Dolphin Document Parser") as demo:
                         with gr.Tab("Processing Data"):
                             json_output = gr.JSON(label="", height=700)
 
-    # 事件处理
-    file.change(fn=to_pdf, inputs=file, outputs=pdf_show)
+    # 事件处理 - 预览文件
+    def preview_file(file_path):
+        """预览上传的文件"""
+        if file_path is None:
+            return None
+        
+        # 对于PDF文件，转换为图像用于预览
+        if file_path.lower().endswith('.pdf'):
+            try:
+                # 转换PDF第一页为图像
+                converted_path = convert_to_image(file_path, target_size=896)
+                return converted_path
+            except Exception as e:
+                logger.error(f"Error converting PDF for preview: {e}")
+                return file_path
+        else:
+            # 图像文件直接返回
+            return file_path
+    
+    file.change(fn=preview_file, inputs=file, outputs=pdf_show)
     
     # 文档处理
     def process_with_status(file_path):
@@ -446,34 +511,25 @@ with gr.Blocks(css=custom_css, title="Dolphin Document Parser") as demo:
         if file_path is None:
             return "", "", {}, {}, "Please select a file first"
         
-        # 更新状态为处理中
-        status = "Processing document..."
-        
         # 执行文档处理
         md_render_result, md_content_result, json_result, debug_result = process_document(file_path)
         
-        # 更新完成状态
-        if "错误" in md_render_result:
-            status = "Processing failed - see debug info"
-        else:
-            status = "Processing completed successfully"
-        
-        return md_render_result, md_content_result, json_result, debug_result, status
+        return md_render_result, md_content_result, json_result, debug_result
     
     submit_btn.click(
         fn=process_with_status,
         inputs=[file],
-        outputs=[md_render, md_content, json_output, debug_output, status_display],
+        outputs=[md_render, md_content, json_output, debug_output],
     )
     
     # 清空所有内容
     def reset_all():
-        return None, None, "", "", {}, {}, "Ready to process documents"
+        return None, None, "", "", {}, {}
     
     clear_btn.click(
         fn=reset_all,
         inputs=[],
-        outputs=[file, pdf_show, md_render, md_content, json_output, debug_output, status_display]
+        outputs=[file, pdf_show, md_render, md_content, json_output, debug_output]
     )
 
 # 启动应用

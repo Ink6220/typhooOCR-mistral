@@ -436,10 +436,8 @@ with gr.Blocks(css=custom_css, title="Dolphin Document Parser") as demo:
                 elem_id="file-upload"
             )
 
-            gr.HTML("支持PDF和图像文件，PDF将转换为图像处理（长边896px）<br>Support PDF and image files, PDF will be converted to images (896px max)")
-
             with gr.Row(elem_classes="action-buttons"):
-                submit_btn = gr.Button("处理文档/Process Document", variant="primary")
+                submit_btn = gr.Button("提交/Submit", variant="primary")
                 clear_btn = gr.ClearButton(value="清空/Clear")
 
             # 示例文件

@@ -15,6 +15,7 @@ from PIL import Image
 from transformers import AutoProcessor, VisionEncoderDecoderModel
 
 from utils.utils import prepare_image, parse_layout_string, process_coordinates, ImageDimensions
+from utils.markdown_utils import MarkdownConverter
 
 # 读取外部CSS文件
 def load_css():
@@ -428,15 +429,36 @@ def process_elements(layout_results, padded_image, dims, max_batch_size=16):
             cropped = padded_image[y1:y2, x1:x2]
             if cropped.size > 0:
                 if label == "fig":
-                    # 对于图像区域，直接添加空文本结果
-                    figure_results.append(
-                        {
-                            "label": label,
-                            "bbox": [orig_x1, orig_y1, orig_x2, orig_y2],
-                            "text": "",
-                            "reading_order": reading_order,
-                        }
-                    )
+                    # 对于图像区域，提取图像的base64编码
+                    try:
+                        # 将裁剪的图像转换为PIL图像
+                        pil_crop = Image.fromarray(cv2.cvtColor(cropped, cv2.COLOR_BGR2RGB))
+                        
+                        # 转换为base64
+                        import io
+                        import base64
+                        buffered = io.BytesIO()
+                        pil_crop.save(buffered, format="PNG")
+                        img_base64 = base64.b64encode(buffered.getvalue()).decode('utf-8')
+                        
+                        figure_results.append(
+                            {
+                                "label": label,
+                                "bbox": [orig_x1, orig_y1, orig_x2, orig_y2],
+                                "text": img_base64,  # 存储base64编码而不是空字符串
+                                "reading_order": reading_order,
+                            }
+                        )
+                    except Exception as e:
+                        logger.error(f"Error encoding figure to base64: {e}")
+                        figure_results.append(
+                            {
+                                "label": label,
+                                "bbox": [orig_x1, orig_y1, orig_x2, orig_y2],
+                                "text": "",  # 如果编码失败，使用空字符串
+                                "reading_order": reading_order,
+                            }
+                        )
                 else:
                     # 准备元素进行解析
                     pil_crop = Image.fromarray(cv2.cvtColor(cropped, cv2.COLOR_BGR2RGB))
@@ -479,21 +501,9 @@ def process_elements(layout_results, padded_image, dims, max_batch_size=16):
 
 def generate_markdown(recognition_results):
     """从识别结果生成Markdown内容"""
-    markdown_parts = []
-    
-    for result in recognition_results:
-        text = result.get("text", "").strip()
-        label = result.get("label", "")
-        
-        if text:
-            if label == "tab":
-                # 表格内容
-                markdown_parts.append(f"\n{text}\n")
-            else:
-                # 普通文本内容
-                markdown_parts.append(text)
-    
-    return "\n\n".join(markdown_parts)
+    # 使用MarkdownConverter来处理所有类型的内容，包括图片
+    converter = MarkdownConverter()
+    return converter.convert(recognition_results)
 
 # LaTeX 渲染配置
 latex_delimiters = [

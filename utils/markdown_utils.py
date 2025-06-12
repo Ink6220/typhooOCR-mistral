@@ -226,6 +226,10 @@ class MarkdownConverter:
         Convert base64 encoded image to markdown image syntax
         """
         try:
+            # Check if text is empty (fallback case)
+            if not text.strip():
+                return f"![Figure {section_count}](data:image/png;base64,)\n\n"
+            
             # Determine image format (assuming PNG if not specified)
             img_format = "png"
             if text.startswith("data:image/"):
@@ -336,7 +340,12 @@ class MarkdownConverter:
                     label = result.get('label', '')
                     text = result.get('text', '').strip()
                     
-                    # Skip empty text
+                    # 处理图片，即使文本为空也要处理
+                    if label == 'fig':
+                        markdown_content.append(self._handle_figure(text, section_count))
+                        continue
+                    
+                    # Skip empty text for non-figure elements
                     if not text:
                         continue
                         
@@ -345,8 +354,6 @@ class MarkdownConverter:
                         markdown_content.append(self._handle_heading(text, label))
                     elif label == 'list':
                         markdown_content.append(self._handle_list_item(text))
-                    elif label == 'fig':
-                        markdown_content.append(self._handle_figure(text, section_count))
                     elif label == 'tab':
                         markdown_content.append(self._handle_table(text))
                     elif label == 'alg':

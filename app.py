@@ -427,7 +427,7 @@ def process_elements(layout_results, padded_image, dims, max_batch_size=16):
 
             # 裁剪并解析元素
             cropped = padded_image[y1:y2, x1:x2]
-            if cropped.size > 0 and (cropped.shape[0] > 1 and cropped.shape[1] > 1):
+            if cropped.size > 0 and (cropped.shape[0] > 3 and cropped.shape[1] > 3):
                 if label == "fig":
                     # 对于图像区域，提取图像的base64编码
                     try:

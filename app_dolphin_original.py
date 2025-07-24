@@ -46,7 +46,8 @@ def initialize_model():
         model.eval()
         
         # 设置设备和精度
-        device = "cuda" if torch.cuda.is_available() else "cpu"
+        #device = "cuda" if torch.cuda.is_available() else "cpu"
+        device = torch.device("cpu")
         model.to(device)
         model = model.half()  # 使用半精度
         
@@ -87,7 +88,8 @@ def model_chat(prompt, image):
         prompts = prompt if isinstance(prompt, list) else [prompt] * len(images)
     
     # 准备图像
-    device = "cuda" if torch.cuda.is_available() else "cpu"
+    #device = "cuda" if torch.cuda.is_available() else "cpu"
+    device = torch.device("cpu")
     batch_inputs = processor(images, return_tensors="pt", padding=True)
     batch_pixel_values = batch_inputs.pixel_values.half().to(device)
     
@@ -517,7 +519,7 @@ latex_delimiters = [
 custom_css = load_css()
 
 # 读取页面头部
-with open("header.html", "r", encoding="utf-8") as file:
+with open("Dolphin/header.html", "r", encoding="utf-8") as file:
     header = file.read()
 
 # 创建 Gradio 界面

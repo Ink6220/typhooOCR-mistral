@@ -1,0 +1,27 @@
+| {"primary_language":"th","is_rotation_valid":true,"rotation_correction":0,"is_table":true,"is_diagram":false,"natural_text":"016"} |
+| --- |
+
+พ.ศ. ๒๕๖๓
+
+“นายแพทย์ต้องฝึกวินิจฉัย ด้วยการปฏิบัติตามหลักสูตรของกระทรวงสาธารณสุข  ในการเรียนคณะสถาปัตยกรรมการเจริญและพัฒนาตามเวลาที่กำหนดไว้ ก่อนจากเวียดนาม มาแนวเมืองไทย ในช่วงปลายศตวรรษที่ 20
+
+ชัยภูมิฯ ถวาย
+
+พระราชกระ
+
+พระนครพนม
+
+หมายเหตุ
+
+| {"primary_language":"th","is_rotation_valid":true,"rotation_correction":0,"is_table":false,"is_diagram":false,"natural_text":"ย่งหน้าไปเปิด | แถว | เวลา\nก็เลยไปเอาคนพี่เนี้ยมาเล่นแก้ว"} |
+| --- | --- | --- |
+
+| {"primary_language":"th","is_rotation_valid":true,"rotation_correction":0,"is_table":false,"is_diagram":false,"natural_text":"ปาทรังว่า\nเช่นกันพึงฝึกสมาธิแล้วจะรู้ได้ว่าตอนไหน | เราโลภ | เราโกรธ"} |
+| --- | --- | --- |
+
+ได้ลายม่าเรือน ก็เพราะวันที่ล่วงแล้ว
+
+ทำการกรุณาให้ใคร รับผลการทดลอง
+
+ได้สิ่งก่อจึง
+

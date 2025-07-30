@@ -1,0 +1,10 @@
+กรมตำรวจ
+
+รายงานประจำวันเกี่ยวกับคดี
+
+${"primary_language":"th","is_rotation_valid":true,"rotation_correction":0,"is_table":false,"is_diagram":false,"natural_text":" "| วัน เดือน ปีเวลา | 14 12.56. 56 |\n|------------------|-----------------|\n\nรายการ\n\n**01.40**\n... lec: Oswhm เชชาเทียบส์ โต๊ะ 28 ชื่อ เลขประจำตัว...\n... Pradit 1920x10002764+ ห้อง 147.ค.\n... Pridi Krungthep 6 Yowen S. Pakdepa A. Luea\n... Nai Phat J. Pathepdee B. Rangsri S. Leardrin\n... ... ... ... ... ... ...\n... Wijit(+) Mawhanyanun Thammasukhumvit...\n... Pawalagidgajrurak\n... Kam Hejkalasazia...\n... ... ... ... ... ...\n... Re 0304440807\n... ... ... ... ... ...\n... Pus Dechdorngkha /shin\n... ... ... ... ... ...\n... ... ... ... ... ..."}$
+
+กองบังคับการ/ตำรวจภูธรจังหวัด ป.ก.น.5 กองบัญชาการ/ภาค ป.ช.
+
+สนผ. 12-1/2537
+

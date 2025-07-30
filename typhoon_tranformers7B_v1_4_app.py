@@ -197,6 +197,41 @@ def convert_results_to_html(results: list) -> str:
             html_parts.append(f'<p>{paragraph_text}</p>')
     return "\n".join(html_parts)
 
+def clean_and_extract_text(raw_html: str) -> str:
+    """
+    ฟังก์ชันสำหรับกรองและสกัดข้อความจากผลลัพธ์ OCR ที่อาจมี JSON ปนอยู่
+
+    Args:
+        raw_html: สตริงดิบที่ได้จาก OCR ซึ่งอาจมีลักษณะเป็น <p>{...}</p>
+
+    Returns:
+        สตริงข้อความที่ถูกทำความสะอาดแล้ว หรือสตริงเดิมหากไม่เข้าเงื่อนไข
+    """
+    try:
+        # 1. ค้นหาเนื้อหาที่เป็น JSON ที่อาจซ่อนอยู่ในสตริง
+        # ใช้ Regular Expression เพื่อหาทุกอย่างที่อยู่ระหว่าง { และ }
+        match = re.search(r'\{.*\}', raw_html)
+
+        if match:
+            json_string = match.group(0)
+            
+            # 2. แปลงสตริง JSON เป็น Python Dictionary
+            data = json.loads(json_string)
+            
+            # 3. ตรวจสอบและดึงค่าจากคีย์ 'natural_text'
+            if 'natural_text' in data and data['natural_text']:
+                # 4. ทำความสะอาดข้อความ: แทนที่การขึ้นบรรทัดใหม่ด้วยการเว้นวรรค
+                # และลบช่องว่างที่ไม่จำเป็นที่หัวและท้ายของประโยค
+                cleaned_text = data['natural_text'].replace('\n', ' ').strip()
+                return cleaned_text
+
+    except (json.JSONDecodeError, TypeError):
+        # หากเกิดข้อผิดพลาดในการแปลง JSON หรือไม่พบข้อมูลตามรูปแบบ
+        # ให้คืนค่าสตริงเดิมโดยลบแท็ก HTML ที่อาจมีออกไป
+        return re.sub(r'<[^>]+>', '', raw_html).strip()
+
+    # หากไม่พบ JSON ในสตริง ให้คืนค่าเดิมโดยลบแท็ก HTML ออก
+    return re.sub(r'<[^>]+>', '', raw_html).strip()
 
 # --- ฟังก์ชันสำหรับ UI ---
 
@@ -284,7 +319,9 @@ def process_data_step2(file_path, coordinates_json, language, page_num):
                         "จงอ่านข้อความทั้งหมดในภาพนี้ และตอบกลับมาเป็นข้อความธรรมดา (Plain Text) เท่านั้น "
                         "**ห้าม** สรุป, เปลี่ยนแปลง, หรือเพิ่มข้อมูลใดๆ ที่ไม่มีอยู่ในภาพโดยเด็ดขาด"
                     )
-                    final_text = process_with_thai_transformer_model(text_prompt, pil_crop)
+                    raw_ocr_text = process_with_thai_transformer_model(text_prompt, pil_crop)
+
+                    final_text = clean_and_extract_text(raw_ocr_text)
 
             recognition_results.append({
                 "bbox": [orig_x1, orig_y1, orig_x2, orig_y2], 

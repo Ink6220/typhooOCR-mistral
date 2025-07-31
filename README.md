@@ -55,7 +55,7 @@
 -----
 
 เพื่อให้สคริปต์ทั้งหมดทำงานร่วมกันได้อย่างถูกต้อง กรุณาจัดเรียงไฟล์และโฟลเดอร์ตามโครงสร้างนี้:
-
+```
 /your-project-folder/
 |
 |-- utils/
@@ -82,7 +82,7 @@
 |-- NO_UI_GPU_typhoon_tranformers_app_V1.py
 |-- NO_UI_GPU_typhoon_tranformers7B_v1_4_app.py
 |-- NO_UI_typhoon_tranformers7B_v1_4_app.py
-
+```
 ### **ขั้นตอนการติดตั้ง (Installation)**
 
 -----

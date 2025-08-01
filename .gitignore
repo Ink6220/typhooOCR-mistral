@@ -70,3 +70,4 @@ output/
 
 # Jupyter笔记本
 .ipynb_checkpoints
+.env

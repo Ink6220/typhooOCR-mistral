@@ -10,7 +10,7 @@ import pymupdf
 # Import โมดูลประมวลผลของแต่ละภาษา
 import ByteDance_Dolphin_app as dolphin_processor
 try:
-    import typhoon_tranformers_app_API as typhoon_processor
+    import Not_working_typhoon_tranformers_app_API as typhoon_processor
 except ImportError:
     logger.warning("typhoon_tranformers_app_API.py not found. Thai processing will be unavailable.")
     typhoon_processor = None

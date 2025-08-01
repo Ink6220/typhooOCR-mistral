@@ -1,4 +1,6 @@
+
 # **Readme: Hybrid Document Parser & OCR Evaluation Suite**
+
 
 ### **คำอธิบาย**
 
@@ -51,34 +53,30 @@
 -----
 
 เพื่อให้สคริปต์ทั้งหมดทำงานร่วมกันได้อย่างถูกต้อง กรุณาจัดเรียงไฟล์และโฟลเดอร์ตามโครงสร้างนี้:
+
 ```
-/your-project-folder/
+/your_project_folder/
 |
-|-- utils/
+|-- utils/                      <-- โฟลเดอร์สำหรับโค้ดเสริม
 |   |-- __init__.py
-|   |-- utils.py          # (ไฟล์ฟังก์ชันเสริมที่ใช้ร่วมกัน)
-|   |-- markdown_utils.py # (ไฟล์สำหรับแปลงผลลัพธ์เป็น Markdown)
+|   |-- utils.py
+|   |-- markdown_utils.py
 |
-|-- ocr_results/          # (โฟลเดอร์สำหรับเก็บผลลัพธ์ .txt จะถูกสร้างอัตโนมัติ)
+|-- Fonts/                      <-- โฟลเดอร์สำหรับฟอนต์ (เช่น THSarabunNew.ttf)
+|   |-- THSarabunNew.ttf
 |
-|-- ByteDance_Dolphin_app.py
-|-- inference_hugg.py
-|-- ocr_evaluation.py
+|-- ocr_results/                <-- โฟลเดอร์สำหรับพักไฟล์ผลลัพธ์ OCR ชั่วคราว (สร้างอัตโนมัติ)
+|-- processed/                  <-- โฟลเดอร์สำหรับเก็บไฟล์ที่ประเมินผลแล้ว (สร้างอัตโนมัติ)
+|-- result_evaluation/          <-- โฟลเดอร์สำหรับเก็บกราฟผลการประเมิน (สร้างอัตโนมัติ)
 |
-|-- new_web.py
-|-- new_web_V1.py
-|-- new_web_fine_tune.py
-|-- new_web_fine_tune_V2.py
+|-- ground_truth.json           <-- ไฟล์ข้อมูลต้นฉบับสำหรับใช้ในการประเมินผล
 |
-|-- typhoon_tranformers_app.py
-|-- typhoon_tranformers_app_V1.py
-|-- typhoon_tranformers7B_v1_4_app.py
-|-- typhoon_tranformers7B_v1_4_app_V2.py
-|
-|-- NO_UI_GPU_typhoon_tranformers_app_V1.py
-|-- NO_UI_GPU_typhoon_tranformers7B_v1_4_app.py
-|-- NO_UI_typhoon_tranformers7B_v1_4_app.py
+|-- new_web_fine_tune_V2.py     <-- (ไฟล์ Web App แนะนำ)
+|-- NO_UI_GPU_..._app.py        <-- (ไฟล์รันผ่าน CLI)
+|-- ocr_evaluation.py           <-- (ไฟล์สคริปต์ประเมินผล)
+|-- ... (ไฟล์ .py อื่นๆ ทั้งหมด)
 ```
+
 ### **ขั้นตอนการติดตั้ง (Installation)**
 
 -----
